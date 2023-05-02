@@ -5,12 +5,9 @@ from wtforms.validators import InputRequired, Email, Length
 class RegisterForm(FlaskForm):
     """Form for registering a user."""
 
-
-
     username = StringField(
         "Username",
         validators=[InputRequired()]
-
     )
 
     password = PasswordField(
@@ -36,6 +33,7 @@ class RegisterForm(FlaskForm):
                     Length(max=30, message="Last Name too long.")]
     )
 
+
 class LoginForm(FlaskForm):
     """Form for registering a user."""
 
@@ -48,6 +46,7 @@ class LoginForm(FlaskForm):
         "Password",
         validators=[InputRequired()]
     )
+
 
 class CSRFProtectForm(FlaskForm):
     """Form just for CSRF Protection"""

@@ -1,7 +1,7 @@
 """Flask app for dessert demo."""
 
 import os
-from flask import Flask, request, jsonify, redirect, session, render_template, flash
+from flask import Flask, redirect, session, render_template, flash
 from models import db, connect_db, User
 from forms import RegisterForm, LoginForm, CSRFProtectForm
 
@@ -9,16 +9,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     "DATABASE_URL", 'postgresql:///flask_notes')
 app.config['SQLALCHEMY_ECHO'] = True
+app.config['SECRET_KEY'] = 'Flask-Post-Secret-Key'
 
 connect_db(app)
+
+SESSION_AUTH_KEY = "username"
 
 @app.get("/")
 def homepage():
     """Redirect to /register}"""
 
-    form = CSRFProtectForm()
-
-    return redirect("/register", form=form)
+    return redirect("/register")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -38,24 +39,25 @@ def register_form():
         db.session.add(user)
         db.session.commit()
 
-        session["user_id"] = user.id
-        return redirect("/users/<username>")
+        session[SESSION_AUTH_KEY] = user.username #NOTE: Create a global var = "username" to prevent whoopsies
+        return redirect(f"/users/{user.username}")
 
     else:
         return render_template("register.html", form=form)
 
 
 @app.get("/users/<username>")
-def list_single_dessert(username):
-    """Example hidden page for logged-in users only."""
+def display_user_data(username):
+    """Shows logged in user data and does requisite checks"""
 
-    if "user_id" not in session:
+    if SESSION_AUTH_KEY not in session or session[SESSION_AUTH_KEY] != username:
         flash("You must be logged in to view!")
         return redirect("/login")
 
     else:
+        form = CSRFProtectForm()
         user = User.query.get(username)
-        return render_template("user.html", user=user)
+        return render_template("user.html", user=user, form=form)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -71,8 +73,8 @@ def login():
         user = User.authenticate(name, pwd)
 
         if user:
-            session["user_id"] = user.id  # keep logged in
-            return redirect("/users/<username>")
+            session[SESSION_AUTH_KEY] = user.username  # keep logged in
+            return redirect(f"/users/{user.username}")
 
         else:
             form.username.errors = ["Bad name/password"]
@@ -87,7 +89,7 @@ def logout():
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
-        # Remove "user_id" if present, but no errors if it wasn't
-        session.pop("user_id", None)
+        # Remove "username" if present, but no errors if it wasn't
+        session.pop(SESSION_AUTH_KEY, None)
 
     return redirect("/")
