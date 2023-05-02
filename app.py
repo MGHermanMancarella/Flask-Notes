@@ -1,13 +1,13 @@
 """Flask app for dessert demo."""
 
 import os
-from flask import Flask, request, jsonify, redirect
-from models import db, connect_db, Dessert
-from forms import RegisterForm
+from flask import Flask, request, jsonify, redirect, session, render_template, flash
+from models import db, connect_db, User
+from forms import RegisterForm, LoginForm, CSRFProtectForm
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    "DATABASE_URL", 'postgresql:///desserts')
+    "DATABASE_URL", 'postgresql:///flask_notes')
 app.config['SQLALCHEMY_ECHO'] = True
 
 connect_db(app)
@@ -16,7 +16,9 @@ connect_db(app)
 def homepage():
     """Redirect to /register}"""
 
-    return redirect("/register")
+    form = CSRFProtectForm()
+
+    return redirect("/register", form=form)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -44,31 +46,48 @@ def register_form():
 
 
 @app.get("/users/<username>")
-def list_single_dessert(dessert_id):
-    """Return JSON {'dessert': {id, name, calories}}"""
+def list_single_dessert(username):
+    """Example hidden page for logged-in users only."""
 
-    dessert = Dessert.query.get_or_404(dessert_id)
-    serialized = dessert.serialize()
+    if "user_id" not in session:
+        flash("You must be logged in to view!")
+        return redirect("/login")
 
-    return jsonify(dessert=serialized)
+    else:
+        user = User.query.get(username)
+        return render_template("user.html", user=user)
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Produce login form or handle login."""
 
-@app.post("/desserts")
-def create_dessert():
-    """Create dessert from posted JSON data & return it.
+    form = LoginForm()
 
-    Returns JSON {'dessert': {id, name, calories}}
-    """
+    if form.validate_on_submit():
+        name = form.username.data
+        pwd = form.password.data
 
-    name = request.json["name"]
-    calories = request.json["calories"]
+        # authenticate will return a user or False
+        user = User.authenticate(name, pwd)
 
-    new_dessert = Dessert(name=name, calories=calories)
+        if user:
+            session["user_id"] = user.id  # keep logged in
+            return redirect("/users/<username>")
 
-    db.session.add(new_dessert)
-    db.session.commit()
+        else:
+            form.username.errors = ["Bad name/password"]
 
-    serialized = new_dessert.serialize()
+    return render_template("login.html", form=form)
+# end-login
 
-    # Return w/status code 201 --- return tuple (json, status)
-    return (jsonify(dessert=serialized), 201)
+@app.post("/logout")
+def logout():
+    """Logs user out and redirects to homepage."""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        # Remove "user_id" if present, but no errors if it wasn't
+        session.pop("user_id", None)
+
+    return redirect("/")
