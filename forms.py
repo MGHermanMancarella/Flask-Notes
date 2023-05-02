@@ -2,9 +2,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, Email
 
-
 class RegisterForm(FlaskForm):
     """Form for registering a user."""
+
+# TODO: Length(min=- 1, max=- 1, message=None)
 
     username = StringField(
         "Username",
