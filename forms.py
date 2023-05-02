@@ -15,28 +15,25 @@ class RegisterForm(FlaskForm):
 
     password = PasswordField(
         "Password",
-        validators=[InputRequired()],
-        validators=[Length(max=100, message="Password too long.")]
+        validators=[InputRequired(),
+                    Length(max=100, message="Password too long.")]
     )
 
     email = StringField(
         "Email",
-        validators=[Email()],
-        validators=[Length(max=50, message="Email too long.")]
+        validators=[Email(), Length(max=50, message="Email too long.")]
     )
 
     first_name = StringField(
         "First Name",
-        validators=[InputRequired()],
-        validators=[Length(max=30, message="First Name too long.")]
-
+        validators=[InputRequired(),
+                    Length(max=30, message="First Name too long.")],
     )
 
     last_name = StringField(
         "Last Name",
-        validators=[InputRequired()],
-        validators=[Length(max=30, message="Last Name too long.")]
-
+        validators=[InputRequired(),
+                    Length(max=30, message="Last Name too long.")]
     )
 
 class LoginForm(FlaskForm):
