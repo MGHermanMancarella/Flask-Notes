@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ user.full_name }}{% endblock %}}
+
+{% block content %}
+  <!-- TEST: users/show.html -->
+  <div class="row">
+
+    <div class="col-sm-10 col-12">
+
+      <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+
+      <p>Email: {{ user.email }}</p>
+
+      <h2 class="mt-4">Notes</h2>
+
+      <ul>
+        {% for note in user.notes %}
+
+          <li>
+
+            <form class="d-inline mr-2">
+              {{ form.hidden_tag() }}
+              <button class="btn btn-link text-primary p-0 btn-sm"
+                      formmethod="GET"
+                      formaction="/notes/{{ note.id }}/update">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+              <button class="btn btn-link text-danger p-0 btn-sm"
+                      formmethod="POST"
+                      formaction="/notes/{{ note.id }}/delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+
+            {{ note.title }}
+            <small class="ms-2 text-muted">{{ note.content | truncate(50) }}</small>
+          </li>
+
+        {% endfor %}
+      </ul>
+
+      <p>
+        <a href="/users/{{ user.username }}/notes/new" class="btn btn-primary">
+          Add Note
+        </a>
+      </p>
+
+      <form>
+        {{ form.hidden_tag() }}
+        <button class="btn btn-danger btn-sm"
+                formaction="/users/{{ user.username }}/delete"
+                formmethod="POST">
+          Delete User
+        </button>
+
+        <button class="btn btn-danger btn-sm"
+                formaction="/logout"
+                formmethod="POST">
+          Logout
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+{% endblock %}

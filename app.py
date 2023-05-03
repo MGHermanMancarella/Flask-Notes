@@ -2,8 +2,8 @@
 
 import os
 from flask import Flask, redirect, session, render_template, flash
-from models import db, connect_db, User
-from forms import RegisterForm, LoginForm, CSRFProtectForm
+from models import db, connect_db, User, Note
+from forms import RegisterForm, LoginForm, CSRFProtectForm, AddNote
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
@@ -39,7 +39,7 @@ def register_form():
         db.session.add(user)
         db.session.commit()
 
-        session[SESSION_AUTH_KEY] = user.username #NOTE: Create a global var = "username" to prevent whoopsies
+        session[SESSION_AUTH_KEY] = user.username
         return redirect(f"/users/{user.username}")
 
     else:
@@ -57,7 +57,8 @@ def display_user_data(username):
     else:
         form = CSRFProtectForm()
         user = User.query.get(username)
-        return render_template("user.html", user=user, form=form)
+        notes = Note.query.filter_by(owner_username=username)
+        return render_template("user.html", user=user, form=form, notes=notes)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -90,6 +91,28 @@ def logout():
 
     if form.validate_on_submit():
         # Remove "username" if present, but no errors if it wasn't
+        session.pop(SESSION_AUTH_KEY, None)
+
+    return redirect("/")
+
+
+@app.post("/users/<username>/delete")
+def delete_user():
+    """Deletes user and all associated notes"""
+
+    form = CSRFProtectForm()
+    username = session[SESSION_AUTH_KEY]
+
+    if form.validate_on_submit():
+        user = User.query.get(username)
+        notes = Note.query.filter_by(owner_username=username)
+
+        notes.query.delete()
+        db.session.delete(user)
+        db.session.commit()
+
+
+        # Remove "username" from session, but no errors if it wasn't
         session.pop(SESSION_AUTH_KEY, None)
 
     return redirect("/")

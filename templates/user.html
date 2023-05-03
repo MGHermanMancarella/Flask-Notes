@@ -11,25 +11,25 @@
   <button class="btn btn-danger">logout</button>
 </form>
 
- <div>
+<div>
   <ul>
     {% for note in notes %}
-      <li>
-        <p>{{note.title}}</p>
-        <button action="/notes/<note-id>/update" method="GET">edit</button>
-        <form method="POST" action="/delete_note">
-          {{ form.hidden_tag() }}
-          <button class="btn btn-danger">delete</button>
-      </li>
+    <li>
+      <p>{{note.title}}</p>
+      <button action="/notes/<note-id>/update" method="GET">edit</button>
+      <form method="POST" action="/delete_note">
+        {{ form.hidden_tag() }}
+        <button class="btn btn-danger">delete</button>
+    </li>
     {% endfor %}
   </ul>
- </div>
+</div>
 <div>
-  <form method="POST" action="/delete_user">
+  <form method="POST" action="/users/{{ username }}/delete">
     {{ form.hidden_tag() }}
     <button class="btn btn-danger">delete user</button>
-    </form>
-    <button action="/users/username/name/add" method="GET">Add Note</button>
+  </form>
+  <button action="/users/username/name/add" method="GET">Add Note</button>
 </div>
 
 {% endblock %}

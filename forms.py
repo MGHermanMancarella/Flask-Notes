@@ -50,3 +50,18 @@ class LoginForm(FlaskForm):
 
 class CSRFProtectForm(FlaskForm):
     """Form just for CSRF Protection"""
+
+class AddNote(FlaskForm):
+    """Form for adding new note"""
+
+    title = StringField(
+        "Title",
+        validators=[InputRequired(),
+                    Length(max=100, message="Title too long.")]
+    )
+
+    content = StringField(
+        "Content",
+        validators=[InputRequired()]
+    )
+

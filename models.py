@@ -98,6 +98,7 @@ class Note(db.Model):
 
     owner_username = db.Column(
         db.String,
-        db.Foreign_key(User.username),
+        db.ForeignKey('users.username'),
         nullable = False
     )
+
